@@ -15,13 +15,18 @@
 #define FOODFILEPATH "marbleFoodConfig.txt"
 #define FESTFILEPATH "marbleFestivalConfig.txt"
 
+#define MAX_PLAYER    100 //player 수 한계 정하기 
 
-//board configuration parameters
+//board configuration parameters 보드 구성 매개변수 
 static int board_nr;
 static int food_nr;
 static int festival_nr;
 
+static int player_nr; //플레이어 수 
 
+static int player_energy[MAX_PLAYER];   //player 에너지
+static int player_position[MAX_PLAYER]; //player 위치 
+static char player_name[MAX_PLAYER][MAX_CHARNAME]; //player 이름 
 
 //function prototypes 함수 선언 
 #if 0
@@ -35,6 +40,31 @@ smmGrade_e takeLecture(int player, char *lectureName, int credit); //take the le
 void* findGrade(int player, char *lectureName); //find the grade from the player's grade history
 void printGrades(int player); //print all the grade history of the player
 #endif
+
+
+void generatePlayers(int n, int initEnergy) //generate a new player 함수 정의 
+{
+     int i;
+     //n time loop 
+     for (i=0;i<n;i++) // player n명 있다고 가정하니까 n번 반복  
+     {
+         //input name
+         printf("input player name: ");  
+         scanf("%s", player_name[i]); // player 이름 입력받기 
+         fflush(stdin);// 입력 스트림 buffer 비우기 
+
+         //set position 초기화 
+         player_position[i] = 0; 
+
+         //set energy
+         player_energy[i] = initEnergy; //초기 에너지 값 // 플레이어의 상황들을 배열로 나타냄 
+     }
+
+}
+
+
+
+
 
 
 
@@ -54,6 +84,9 @@ int rolldie(int player)
 
     return (rand()%MAX_DIE + 1);
 }
+
+
+
 
 #if 0 // from this sectioin, 
 //action code when a player stays at a node
@@ -101,19 +134,22 @@ int main(int argc, const char * argv[]) {
  
     {
         //store the parameter set
-        smmObj_genNode(name, type, credit, energy); // smm_object.c에 저장하는 함수를 구현하고 호출 Implement and call functions that are stored in sm_object.c 
+        smmObj_genNode(name, type, credit, energy); // smm_object.c에 저장하는 함수를 구현하고 호출 
         board_nr++;                              // main.c에서 object.c로 입력 받은 값을 전달 해야함. 전달하는 함수가 genNode임 
 		// 전체 노드 개수(내가 읽어온게 몇개다 라는걸) 넣어야됨. while문 한번 돌때마다 +1됨                         
     }
     fclose(fp);
     printf("Total number of board nodes : %i\n", board_nr);
 
-    for (i = 0;i<board_nr;i++)
-        printf("node %i : %s, %i, %i \n", i, smmObj_getNodeName(i), smmObj_getNodeType(i), smmObj_getNodeEnergy(i));  
+    for (i = 0;i<board_nr;i++)// smmObj_getNodeType(i) i번째 노드의 유형값을  얻어내는 함수 유형값값이 나오면 그걸 getTypeName 함수에 집어넣어서 유형이름(강의)얻음. 
+    	printf("node %i : %s, %i(%s)\n", i, smmObj_getNodeName(i), smmObj_getNodeType(i),smmObj_getTypeName(smmObj_getNodeType(i)));
+		
+	printf("(%s)", smmObj_getTypeName(SMMNODE_TYPE_LECTURE));
+		
 	
 	
 
-  
+	#if 0
     //2. food card config 
     if ((fp = fopen(FOODFILEPATH,"r")) == NULL)
     {
@@ -159,16 +195,19 @@ int main(int argc, const char * argv[]) {
         printf("Fest %i : %s \n", i, smmObj_getFestName(i));
 
 
-	# if 0
+
     //2. Player configuration ---------------------------------------------------------------------------------
-    /*
+
     do
     {
         //input player number to player_nr
+        printf("input player no.:");
+        scanf("%d", &player_nr);
+        fflush(stdin);
     }
-    while ();
-    generatePlayers();
-    */
+	while (player_nr < 0 || player > MAX_PLAYER); // 끝내야 할 조건의 반대를 걸어서 계속 반복 
+	
+	generatePlayers(player_nr, initEnergy);
 
     //3. SM Marble game starts ---------------------------------------------------------------------------------
     while () //is anybody graduated?

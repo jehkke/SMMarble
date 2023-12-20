@@ -13,6 +13,24 @@
 #define MAX_GRADE       9
 #define MAX_NODE        100 // 보드의 칸(노드) 개수가 몇개 인지 안말함. 100개 정도로 정하기
 
+
+
+static char smmNodeName[SMMNODE_TYPE_MAX][MAX_CHARNAME] = {
+       "강의",
+       "식당",
+       "실험실",
+       "집",
+       "실험실로이동",
+       "음식찬스",
+       "축제시간"
+};
+// 유형이름  입력 함수 정의 
+char* smmObj_getTypeName(int type) // 유형 값  입력은 main.c에서 i번쨰 노드의 유형을 얻어내는 함수 
+{
+      return (char*)smmNodeName[type];
+}
+
+
 //전역변수 선언 
 // smm_Obj -> smm_Obj안에 존재하는 전역변수다. //구조체로 나중에 바꿈.  
 static char smmObj_name[MAX_NODE][MAX_CHARNAME]; //문자열을 멀티로 저장하고 싶으면 2차원배열로 하면 됨.// charname은 200자 이내인거 common.h에 정의 
@@ -52,7 +70,7 @@ void smmObj_genFest(char*name)
 
 
 ////Node function return
-char* smmObj_getNodeName(int node_nr) //몇번째 노드의 이름을 받고 싶냐 
+char* smmObj_getNodeName(int node_nr) //몇번째 노드의 이름을 받고싶냐 
 {
     return smmObj_name[node_nr]; 
 }
