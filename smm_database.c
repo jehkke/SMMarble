@@ -1,8 +1,8 @@
 //
 //  smm_database.c
-//  Sookmyung Marble
+//  SMMarble
 //  Database platform code for storing marble board elements
-//  Created by Juyeop Kim on 2023/11/05.
+//  Created by Juyeop kim on 2023/11/05.
 //
 
 #include "smm_common.h"
