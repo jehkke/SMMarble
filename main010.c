@@ -111,7 +111,8 @@ int main(int argc, const char * argv[]) {
     int credit;
     int energy;
     int i;
-
+	int initEnergy;
+	
     board_nr = 0;
     food_nr = 0;
     festival_nr = 0;
@@ -149,7 +150,7 @@ int main(int argc, const char * argv[]) {
 	
 	
 
-	#if 0
+	
     //2. food card config 
     if ((fp = fopen(FOODFILEPATH,"r")) == NULL)
     {
@@ -205,10 +206,10 @@ int main(int argc, const char * argv[]) {
         scanf("%d", &player_nr);
         fflush(stdin);
     }
-	while (player_nr < 0 || player > MAX_PLAYER); // 끝내야 할 조건의 반대를 걸어서 계속 반복 
+	while (player_nr < 0 || player_nr > MAX_PLAYER); // 끝내야 할 조건의 반대를 걸어서 계속 반복 
 	
 	generatePlayers(player_nr, initEnergy);
-
+	#if 0
     //3. SM Marble game starts ---------------------------------------------------------------------------------
     while () //is anybody graduated?
     {
@@ -229,7 +230,7 @@ int main(int argc, const char * argv[]) {
         //4-5. next turn
 
     }
-    #endif
+ 	#endif
     system("PAUSE");
     return 0;
 }
