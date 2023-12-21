@@ -46,12 +46,17 @@
 
 //object generation
 void smmObj_genNode(char* name, int type, int credit, int energy);
+
 void smmObj_genFood(char* name, int energy);
 void smmObj_genFest(char*name);
-//member retrieving //이거 두개 object.c에서 옴 main.c에서 호출받을 수 있게 여기에 선언 
+
+//member retrieving //이거 두개 object.c에서 옴 main.c에서 호출받을 수 있게 여기에 함수헤더  선언 
 char* smmObj_getNodeName(int node_nr);
 int smmObj_getNodeType(int node_nr);
 int smmObj_getNodeEnergy(int node_nr);
+int smmObj_getNodeCredit(int node_nr);
+
+char* smmObj_getFoodName(int Food_nr);
 char* smmObj_getFestName(int Fest_nr);
 
 //element to string
