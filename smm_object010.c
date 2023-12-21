@@ -48,9 +48,11 @@ typedef enum smmObjGrade {
 //1. 구조체 형식 정의 (칸에 대한 구조체의 정의는 여기서만 하고 보여주면 안됨)
 typedef struct smmObject {		// 구조체 정의 name,type,credit,energy 변수 멤버, smmObject_t 변수선언 
        char name[MAX_CHARNAME];
+       smmObjType_e objType; 
        int type;
        int credit;
        int energy;
+       smmObjGrade_e grade;
 } smmObject_t;  
 
 typedef struct smmFood { // 구조체 정의와 name,energy 변수 멤버,smmFood_t 변수선언 
@@ -72,103 +74,112 @@ typedef struct smmFest { // 구조체 정의 name 변수 멤버, smmFest_t 변수선언
 //smmFest_t smm_fest[MAX_FEST];
 //static int smmObj_noFest=0;
 
-#if 0
-//전역변수 선언 
-// smm_Obj -> smm_Obj안에 존재하는 전역변수다. //구조체로 나중에 바꿈.  
-static char smmObj_name[MAX_NODE][MAX_CHARNAME]; //문자열을 멀티로 저장하고 싶으면 2차원배열로 하면 됨.// charname은 200자 이내인거 common.h에 정의 
-static int smmObj_type[MAX_NODE];
-static int smmObj_credit[MAX_NODE];
-static int smmObj_energy[MAX_NODE];
-#endif
-
-static smmObject_t smmnode[MAX_NODE]; //smmObject_t 구조체 smnode배열 설정 
 
 
 
 //3. 관련 함수 배열에서 구조체로  맞게 변경 
 //object generation
-void smmObj_genNode(char* name, int type, int credit, int energy) //main에서 값 입력받는  genNode 함수 정의 
+void* smmObj_genObject(char* name, smmObjType_e objType,
+ int type, int credit, int energy, smmObjGrade_e grade)
 {
-	#if 0 
-    strcpy(smmObj_name[smmObj_noNode], name); //배열에 입력값을 넣음. 문자열은 하나하나씩 복사해야됨. strcpy 쓰기 
-    smmObj_type[smmObj_noNode] = type; 
-    smmObj_credit[smmObj_noNode] = credit;
-    smmObj_energy[smmObj_noNode] = energy;
-	#endif
-	// 원래 main함수에서 칸에 대한 정보를 가져온다음에 값을 저장하는 형태 
-	// 이젠 구조체에다가 값을 넣는 형태 
-	strcpy(smm_node[smmObj_noNode].name, name); // 전역변수 배열을 구조체 배열로 바꿈. 
-    smm_node[smmObj_noNode].type = type;
-    smm_node[smmObj_noNode].credit = credit;
-    smm_node[smmObj_noNode].energy = energy;
+	smmObject_t* ptr;
+	ptr = (smmObject_t*)malloc(sizeof(smmObject_t));
 	
-    smmObj_noNode++;  
+	strcpy(ptr->name, name);
+    ptr->objType = objType;
+    ptr->type = type;
+    ptr->credit = credit;
+    ptr->energy = energy;
+    ptr->grade = grade;
+
+    return ptr;
+  
 }
 
 
 
 
 //Food generation function
-void smmObj_genFood(char*name, int energy)
+void* smmObj_genFood(char*name, int energy)
 {
-	 #if 0
-	strcpy(smmObj_name[smmObj_noFood],name);
-	smmObj_energy[smmObj_noFood] = energy;
-	#endif
+	smmFood_t*ptr;
+	ptr = (smmFood_t*)malloc(sizeof(smmFood_t));
 	
-	strcpy(smm_food[smmObj_noFood].name, name);
-	smm_food[smmObj_noFood].energy = energy;
+	strcpy(ptr->name, name);
+    ptr->energy = energy;
+
+    return ptr;
 	
-	smmObj_noFood++;
 }
 
 //Festival generatiom function
-void smmObj_genFest(char*name)
+void* smmObj_genFest(char*name)
 {
-	strcpy(smm_fest[smmObj_noFest].name,name);
+	smmFest_t*ptr;
+	ptr = (smmFest_t*)malloc(sizeof(smmFest_t));
 	
-	smmObj_noFest++;
+	strcpy(ptr->name, name);
+	
+	return ptr;
+	
 }
 
 
 
 //3. 관련 함수 변경: . 연산자를 이용하여 구조체 멤버 변수로 변경 
 ////Node function return
-char* smmObj_getNodeName(int node_nr) //몇번째 노드의 이름을 받고싶냐 
+char* smmObj_getNodeName(void* obj)
 {
-    return smm_node[node_nr].name; //. 연산자를 이용하여 구조체 멤버 변수로 변경 후 반환 
+    smmObject_t* ptr = (smmObject_t*)obj;
+
+    return ptr->name; 
 }
 //함수의 반환값= type 값
-int smmObj_getNodeType(int node_nr) //type 값이 여러개인데, 몇번째 값을 가져올거야? node number 로 매개변수 
+int smmObj_getNodeType(void* obj) //type 값이 여러개인데, 몇번째 값을 가져올거야? node number 로 매개변수 
 {
-    return smm_node[node_nr].type; //. 연산자를 이용하여 구조체 멤버 변수로 변경 후 반환 
+    smmObject_t* ptr = (smmObject_t*)obj;
+    
+    return ptr-> type;
 }
 
-int smmObj_getNodeEnergy(int node_nr)
+int smmObj_getNodeEnergy(void* obj)
 {
-    return smm_node[node_nr].energy; //. 연산자를 이용하여 구조체 멤버 변수로 변경 후 반환 
+     smmObject_t* ptr = (smmObject_t*)obj;
+    
+    return ptr-> energy;
 }
 
-int smmObj_getNodeCredit(int node_nr)
+int smmObj_getNodeCredit(void* obj)
 {
-    return smm_node[node_nr].credit; //. 연산자를 이용하여 구조체 멤버 변수로 변경 후 반환 
+     smmObject_t* ptr = (smmObject_t*)obj;
+    
+    return ptr-> credit;
 }
 
 
 //Food function return
-char* smmObj_getFoodName(int food_nr) //몇번째 노드의 이름을 받고 싶냐 
-{
-    return smm_food[food_nr].name;
+char* smmObj_getFoodName(void* food) //몇번째 노드의 이름을 받고 싶냐 
+{	
+	smmFood_t* ptr = (smmFood_t*)food;
+    
+    return ptr-> name;
+   
 	 
 }
-int smmObj_getFoodEnergy(int food_nr)
+int smmObj_getFoodEnergy(void* food)
 {
-    return smm_food[food_nr].energy; //. 연산자를 이용하여 구조체 멤버 변수로 변경 후 반환 
+    smmFood_t* ptr = (smmFood_t*)food;
+    
+    return ptr-> energy;
+  
 }
 // Fest function return
-char* smmObj_getFestName(int fest_nr) //몇번째 노드의 이름을 받고 싶냐 
+char* smmObj_getFestName(void* fest) //몇번째 노드의 이름을 받고 싶냐 
 {
-    return smm_fest[fest_nr].name; //. 연산자를 이용하여 구조체 멤버 변수로 변경 후 반환 
+    smmFest_t* ptr = (smmFest_t*)fest;
+    
+    return ptr-> name;
+  
 }
 
 

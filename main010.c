@@ -12,7 +12,6 @@
 #include "smm_common.h"
 
 
-
 #define BOARDFILEPATH "marbleBoardConfig.txt" //Each txt gets information about boards and food and festivals  
 #define FOODFILEPATH "marbleFoodConfig.txt"
 #define FESTFILEPATH "marbleFestivalConfig.txt"
@@ -24,8 +23,9 @@ static int board_nr;
 static int food_nr;
 static int festival_nr;
 
-
 static int player_nr; //플레이어 수  
+
+
  // 전역변수 배열로 정의한 요소들을 player 구조체로 묶어서 정의
 typedef struct player {  //1. 구조체 형식 정의  
         int energy;
@@ -34,6 +34,7 @@ typedef struct player {  //1. 구조체 형식 정의
         int accumCredit;
         int flag_graduate;
 } player_t; 
+
 //2. 구조체 배열 선언 
 static player_t *cur_player; //database에서 linked list 형태로 가지고 있으므로 배열 필요 X 
 //static player_t cur_player[MAX_PLAYER];
@@ -198,7 +199,7 @@ void actionNode(int player)
        
         //case home 시작점이자 종료점.지나가는 순간 지정된 보충에너지만큼 현재 에너지에 더해짐. 
         case SMMNODE_TYPE_HOME:
-            cur_player[player].energy += smmObj_getNodeEnergy( boardPtr );
+            cur_player[player].energy += smmObj_getNodeEnergy(cur_player[player].position);
             break;
             
         //case GOTOLAB 
@@ -212,7 +213,7 @@ void actionNode(int player)
  
         //case laboratory 
         case SMMNODE_TYPE_LABORATORY:
-              cur_player[player].energy -= smmObj_getNodeEnergy(boardPtr); // 실험 시도마다 소요된 에너지 차감
+              cur_player[player].energy -= smmObj_getNodeEnergy(cur_player[player].position); // 실험 시도마다 소요된 에너지 차감
               srand(time(NULL));  // 난수 발생기를 초기화 (프로그램을 실행할 때 한 번만 수행)
               int result = random();  // 1에서 6까지의 랜덤한 숫자를 생성
 
@@ -241,7 +242,7 @@ void actionNode(int player)
     		printf("You encountered a festival: %s. Mission: Perform a task!\n", smmObj_getNodeName);
     		break;
     		
-    break;
+    
             
         default:
             break;
@@ -251,11 +252,13 @@ void actionNode(int player)
 
 void goForward(int player, int step)
 {
-     cur_player[player].position += step;
-
-     printf("%s go to node %i (name: %s)\n", 
-                cur_player[player].name, cur_player[player].position,
-                smmObj_getNodeName(boardPtr));
+	void *boardPtr;
+    cur_player[player].position += step;
+	boardPtr = smmdb_getData(LISTNO_NODE, cur_player[player].position );
+	
+    printf("%s go to node %i (name: %s)\n", 
+        cur_player[player].name, cur_player[player].position,
+        smmObj_getNodeName(boardPtr);
 }
 
 
@@ -293,7 +296,10 @@ int main(int argc, const char * argv[]) {
  
     {
         //store the parameter set
-        smmObj_genNode(name, type, credit, energy); // smm_object.c에 저장하는 함수를 구현하고 호출 
+        //(char* name, smmObjType_e objType, int type, int credit, int energy, smmObjGrade_e grade)
+        void *boardObj = smmObj_genObject(name, smmObjType_board, type, credit, energy, 0);
+        smmdb_addTail(LISTNO_NODE, boardObj);
+        
         if(type == SMMNODE_TYPE_HOME)
         	initEnergy = energy;
 		board_nr++;                              // main.c에서 object.c로 입력 받은 값을 전달 해야함. 전달하는 함수가 genNode임 
@@ -303,11 +309,15 @@ int main(int argc, const char * argv[]) {
     printf("Total number of board nodes : %i\n", board_nr);
 
     for (i = 0;i<board_nr;i++)// smmObj_getNodeType(i) i번째 노드의 유형값을  얻어내는 함수 유형값값이 나오면 그걸 getTypeName 함수에 집어넣어서 유형이름(강의)얻음. 
-    	printf("node %i : %s, %i(%s), credit %i, energy %i\n", i, smmObj_getNodeName(i), 
-                     smmObj_getNodeType(i), smmObj_getTypeName(smmObj_getNodeType(i)),
-                     smmObj_getNodeCredit(i), smmObj_getNodeEnergy(i));
-
-	
+    {
+    	 void *boardObj = smmdb_getData(LISTNO_NODE, i);
+			
+		
+		printf("node %i : %s, %i(%s), credit %i, energy %i\n", i, smmObj_getNodeName(boardObj), 
+                     smmObj_getNodeType(boardObj), smmObj_getTypeName(smmObj_getNodeType(boardObj)),
+                     smmObj_getNodeCredit(boardObj), smmObj_getNodeEnergy(boardObj));
+	}
+	//printf("(%s)", smmObj_getTypeName(SMMNODE_TYPE_LECTURE));
 	
 
 
@@ -322,16 +332,21 @@ int main(int argc, const char * argv[]) {
     while (fscanf(fp, "%s %i", name, &energy) == 2) //read a food parameter set
     {
         //store the parameter set
-        smmObj_genFood(name, energy);
+        void *FoodObj = void* smmObj_genFood(char*name, int energy);
+        smmdb_addTail(LISTNO_FOOD, FoodObj);
+        
+
         food_nr++;
 
     }
     fclose(fp);
     printf("Total number of food cards : %i\n", food_nr);
     
-     for (i = 0;i<food_nr;i++)
-        printf("food %i : %s, %i\n", i, smmObj_getNodeName(i), smmObj_getNodeEnergy(i));
-
+     for (i = 0;i<food_nr;i++){
+	 
+     	void *FoodObj = smmdb_getData(LISTNO_FOOD, i);
+        printf("food %i : %s, %i\n", i, smmObj_getNodeName(FoodObj), smmObj_getNodeEnergy(FoodObj));
+		}
 
 
 
@@ -346,14 +361,17 @@ int main(int argc, const char * argv[]) {
     while (fscanf(fp, "%s", name) == 1) //read a festival card string
     {
         //store the parameter set
-        smmObj_genFest(name);
+        void *FestObj = void* smmObj_genFest(char*name);
+        smmdb_addTail(LISTNO_FEST, FestObj);
+        
         festival_nr++;
     }
     fclose(fp);
     printf("Total number of festival cards : %i\n", festival_nr);
     
-    for (i = 0;i<festival_nr;i++)
-        printf("Fest %i : %s \n", i, smmObj_getFestName(i));
+    for (i = 0;i<festival_nr;i++){
+		void *FestObj = smmdb_getData(LISTNO_FEST, i);
+        printf("Fest %i : %s \n", i, smmObj_getFestName(FestObj));}
 
 
 
@@ -368,10 +386,11 @@ int main(int argc, const char * argv[]) {
     }
 	while (player_nr < 0 || player_nr > MAX_PLAYER); // 끝내야 할 조건의 반대를 걸어서 계속 반복 
 	
+	cur_player = (player_t*)malloc(player_nr*sizeof(player_t));
 	generatePlayers(player_nr, initEnergy);
 	
 	
-	#if 0 
+
 	//턴을 돌면서 플레이어가 동작하는 코드 
 	//주어진 while문을 채워서 반복적으로 플레이어 동작이 이루어지도록 함( 무한 반복) 
 	// 한번의 반복에서 한 플레이어가 한턴 동작 수행 
@@ -396,7 +415,7 @@ int main(int argc, const char * argv[]) {
         turn=(turn+1)%player_nr
 
     }
-#endif
+	free(cur_player);
     system("PAUSE");
     return 0;
 	}
