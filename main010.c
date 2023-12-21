@@ -35,7 +35,8 @@ typedef struct player {  //1. 구조체 형식 정의
         int flag_graduate;
 } player_t; 
 //2. 구조체 배열 선언 
-static player_t cur_player[MAX_PLAYER];
+static player_t *cur_player; //database에서 linked list 형태로 가지고 있으므로 배열 필요 X 
+//static player_t cur_player[MAX_PLAYER];
 
 #if 0
 static int player_energy[MAX_PLAYER];   //player 에너지
@@ -47,7 +48,7 @@ static char player_name[MAX_PLAYER][MAX_CHARNAME]; //player 이름
 #if 0
 int isGraduated(void); //check if any player is graduated
 void generatePlayers(int n, int initEnergy); //generate a new player
-void printGrades(int player) //print grade history of the player
+ //print grade history of the player
 void goForward(int player, int step); //make player go "step" steps on the board (check if player is graduated)
 void printPlayerStatus(void); //print all player status at the beginning of each turn
 float calcAverageGrade(int player); //calculate average grade of the player
@@ -55,6 +56,17 @@ smmGrade_e takeLecture(int player, char *lectureName, int credit); //take the le
 void* findGrade(int player, char *lectureName); //find the grade from the player's grade history
 void printGrades(int player); //print all the grade history of the player
 #endif
+
+void printGrades(int player)
+{
+     int i;
+     void *gradePtr;
+     for (i=0;i<smmdb_len(LISTNO_OFFSET_GRADE + player);i++)
+     {
+         gradePtr = smmdb_getData(LISTNO_OFFSET_GRADE + player, i);
+         printf("%s : %i\n", smmObj_getNodeName(gradePtr), smmObj_getNodeGrade(gradePtr));
+     }
+}
 
 
  
@@ -116,7 +128,7 @@ int rolldie(int player) //주사위 랜덤숫자 함수정의
      //출력 버퍼를 비울때 사용, 표준입력 stdin을 비울 때 사용
 	//Used to empty output buffer, used to empty standard input stdin
 
-#if 0
+#if 1 // 참으로 간주 
     if (c == 'g')
         printGrades(player);
 #endif
@@ -136,7 +148,11 @@ int ramdom() {
 void actionNode(int player)
 
 {
-	int type = smmObj_getNodeType( cur_player[player].position );
+	void *boardPtr = smmdb_getData(LISTNO_NODE, cur_player[player].position );
+    //int type = smmObj_getNodeType( cur_player[player].position );
+    int type = smmObj_getNodeType( boardPtr );
+    char *name = smmObj_getNodeName( boardPtr );
+    void *gradePtr;
 	
     switch(type)
     {	
@@ -152,8 +168,12 @@ void actionNode(int player)
 
                     if (choice == 1) {
                        
-                        cur_player[player].accumCredit += smmObj_getNodeCredit(cur_player[player].position);
-                        cur_player[player].energy -= smmObj_getNodeEnergy(cur_player[player].position);
+                        cur_player[player].accumCredit += smmObj_getNodeCredit(boardPtr);
+                        cur_player[player].energy -= smmObj_getNodeEnergy(boardPtr);
+                        
+                        //grade generation
+            			//gradePtr = smmObj_genObject(name, smmObjType_grade, 0, smmObj_getNodeCredit( boardPtr ), 0, A+);
+            			smmdb_addTail(LISTNO_OFFSET_GRADE + player, gradePtr);
 
                         
                         char* grades[] = {"A+", "A0", "A-", "B+", "B0", "B-", "C+", "C0", "C-"};
@@ -173,12 +193,12 @@ void actionNode(int player)
 
         // case retaurant 보충 에너지만큼 플레이어의 현재 에너지가 더해짐. 
         case SMMNODE_TYPE_RESTAURANT:
-         	cur_player[player].energy += smmObj_getNodeEnergy( cur_player[player].position );
+         	cur_player[player].energy += smmObj_getNodeEnergy(boardPtr);
             break;
        
         //case home 시작점이자 종료점.지나가는 순간 지정된 보충에너지만큼 현재 에너지에 더해짐. 
         case SMMNODE_TYPE_HOME:
-            cur_player[player].energy += smmObj_getNodeEnergy( cur_player[player].position );
+            cur_player[player].energy += smmObj_getNodeEnergy( boardPtr );
             break;
             
         //case GOTOLAB 
@@ -187,14 +207,14 @@ void actionNode(int player)
               int criterion = random();  //랜덤 함수 호출 
               printf("Experiment Success Criterion Values: %d\n", criterion); // 
               
-              cur_player[player].position = SMMNODE_TYPE_LABORATORY; // Laboratory로 이동
+               cur_player[player].position = SMMNODE_TYPE_LABORATORY; // Laboratory로 이동
               break;
  
         //case laboratory 
         case SMMNODE_TYPE_LABORATORY:
-              cur_player[player].energy -= smmObj_getNodeEnergy(cur_player[player].position); // 실험 시도마다 소요된 에너지 차감
+              cur_player[player].energy -= smmObj_getNodeEnergy(boardPtr); // 실험 시도마다 소요된 에너지 차감
               srand(time(NULL));  // 난수 발생기를 초기화 (프로그램을 실행할 때 한 번만 수행)
-              int result = ramdom();  // 1에서 6까지의 랜덤한 숫자를 생성
+              int result = random();  // 1에서 6까지의 랜덤한 숫자를 생성
 
               if (result >= criterion) {
                   printf("you can escape.\n");
@@ -235,7 +255,7 @@ void goForward(int player, int step)
 
      printf("%s go to node %i (name: %s)\n", 
                 cur_player[player].name, cur_player[player].position,
-                smmObj_getNodeName(cur_player[player].position));
+                smmObj_getNodeName(boardPtr));
 }
 
 

@@ -31,6 +31,19 @@ char* smmObj_getTypeName(int type) // 유형 값  입력은 main.c에서 i번쨰 노드의 유
 {
       return (char*)smmNodeName[type];
 }
+
+typedef enum smmObjGrade {
+    smmObjGrade_Ap = 0,
+    smmObjGrade_A0,
+    smmObjGrade_Am,
+    smmObjGrade_Bp,
+    smmObjGrade_B0,
+    smmObjGrade_Bm,
+    smmObjGrade_Cp,
+    smmObjGrade_C0,
+    smmObjGrade_Cm
+} smmObjGrade_e;
+
 //이름, 유형, 학점, 에너지 
 //1. 구조체 형식 정의 (칸에 대한 구조체의 정의는 여기서만 하고 보여주면 안됨)
 typedef struct smmObject {		// 구조체 정의 name,type,credit,energy 변수 멤버, smmObject_t 변수선언 
@@ -52,9 +65,12 @@ typedef struct smmFest { // 구조체 정의 name 변수 멤버, smmFest_t 변수선언
 
 
 //2. 구조체 배열 변수 정의 
-smmObject_t smm_node[MAX_NODE];
-smmFood_t smm_food[MAX_FOOD];
-smmFest_t smm_fest[MAX_FEST];
+//static smmObject_t smm_node[MAX_NODE];
+//static int smmObj_noNode = 0;
+//smmFood_t smm_food[MAX_FOOD];
+//static int smmObj_noFood=0;
+//smmFest_t smm_fest[MAX_FEST];
+//static int smmObj_noFest=0;
 
 #if 0
 //전역변수 선언 
@@ -67,9 +83,6 @@ static int smmObj_energy[MAX_NODE];
 
 static smmObject_t smmnode[MAX_NODE]; //smmObject_t 구조체 smnode배열 설정 
 
-static int smmObj_noNode=0; //배열에 입력값을 넣음. 처음에는 아무것도 없으니까 0번째에 채워짐. 
-static int smmObj_noFood=0; //구조체 배열 인덱스 값 세팅 
-static int smmObj_noFest=0;
 
 
 //3. 관련 함수 배열에서 구조체로  맞게 변경 
